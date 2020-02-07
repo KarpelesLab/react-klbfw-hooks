@@ -1,0 +1,19 @@
+{
+  "name": "@karpeleslab/react-klbfw-hooks",
+  "version": "0.0.1",
+  "description": "GET hooks for klbfw",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KarpelesLab/react-klbfw-hooks.git"
+  },
+  "author": "Mark Karpeles",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KarpelesLab/react-klbfw-hooks/issues"
+  },
+  "homepage": "https://github.com/KarpelesLab/react-klbfw-hooks#readme"
+}
