@@ -1,7 +1,7 @@
 {
   "name": "@karpeleslab/react-klbfw-hooks",
-  "version": "0.0.2",
-  "description": "GET hooks for klbfw",
+  "version": "0.1.0",
+  "description": "Various hooks for klbfw",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
