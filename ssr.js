@@ -71,11 +71,15 @@ export function makeRenderer(app) {
 			let varCtx = {};
 
 			result.app = renderToString(
-				<Context.Provider value={varCtx}>
-					<StaticRouter context={context} basename={getPrefix()} location={getUrl().full}>
-						{app}
-					</StaticRouter>
-				</Context.Provider>
+				React.createElement(
+					Context.Provider,
+					{value: varCtx},
+					React.createElement(
+						StaticRouter,
+						{context: context, basename: getPrefix(), location: getUrl().full},
+						app
+					)
+				)
 			);
 
 			// handle context from StaticRouter
@@ -123,13 +127,15 @@ export function run(app) {
 		let ctx = {};
 
 		// initialize app for client rendering
-		app = (
-			<Context.Provider value={ctx}>
-				<BrowserRouter basename={getPrefix()}>
-					{app}
-				</BrowserRouter>
-			</Context.Provider>
-		);
+		app = React.createElement(
+				Context.Provider,
+				{value: ctx},
+				React.createElement(
+					BrowserRouter,
+					{basename: getPrefix()},
+					app
+				)
+			);
 
 		// read getInitialState()
 		let init = getInitialState();
