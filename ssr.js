@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { BrowserRouter, StaticRouter } from "react-router-dom";
 import { getPrefix, getUuid, getUrl, getInitialState } from "@karpeleslab/klbfw";
+import { Helmet } from "react-helmet";
 
 export const Context = React.createContext({});
 Context.displayName = "Context";
@@ -66,22 +67,20 @@ export function makeRenderer(app) {
 	return function(cbk) {
 		let result = { uuid: getUuid(), initial: {} };
 
-		try {
-			let context = {};
-			let varCtx = {};
+		let context = {};
+		let varCtx = {};
 
-			result.app = renderToString(
+		app = React.createElement(
+				Context.Provider,
+				{value: varCtx},
 				React.createElement(
-					Context.Provider,
-					{value: varCtx},
-					React.createElement(
-						StaticRouter,
-						{context: context, basename: getPrefix(), location: getUrl().full},
-						app
-					)
+					StaticRouter,
+					{context: context, basename: getPrefix(), location: getUrl().full},
+					app
 				)
 			);
 
+		let fin = function() {
 			// handle context from StaticRouter
 			if (context.status)
 				result.statusCode = context.status;
@@ -98,27 +97,37 @@ export function makeRenderer(app) {
 				result.initial[varName] = varCtx[varName].value;
 			}
 
-			// grab helmet if available
-			try {
-				const Helmet = require("react-helmet").Helmet;
-				Helmet.canUseDOM = false;
-				const helmet = Helmet.renderStatic();
+			// grab helmet data
+			Helmet.canUseDOM = false;
+			const helmet = Helmet.renderStatic();
 
-				result.title = helmet.title ? helmet.title.toString() : null;
-				result.meta = helmet.meta ? helmet.meta.toString() : null;
-				result.script = helmet.script ? helmet.script.toString() : null;
-				result.link = helmet.link ? helmet.link.toString() : null;
-				result.bodyAttributes = helmet.bodyAttributes ? helmet.bodyAttributes.toString() : null;
-				result.htmlAttributes = helmet.htmlAttributes ? helmet.htmlAttributes.toString() : null;
+			result.title = helmet.title ? helmet.title.toString() : null;
+			result.meta = helmet.meta ? helmet.meta.toString() : null;
+			result.script = helmet.script ? helmet.script.toString() : null;
+			result.link = helmet.link ? helmet.link.toString() : null;
+			result.bodyAttributes = helmet.bodyAttributes ? helmet.bodyAttributes.toString() : null;
+			result.htmlAttributes = helmet.htmlAttributes ? helmet.htmlAttributes.toString() : null;
 
-				cbk(result);
-			} catch(e) {
-				// ignore
-			}
-		} catch(e) {
-			result.error = e;
 			cbk(result);
-		}
+		};
+
+		// let it go~~~
+		let go = function() {
+			varCtx["@promises"] = new Set();
+
+			result.app = renderToString(app);
+
+			if (varCtx["@promises"].size == 0) {
+				// finalize process
+				fin();
+				return;
+			}
+
+			// we have some promises, wait and run again!
+			Promise.all(varCtx["@promises"]).then(go).catch(e => { result.error = e; cbk(result); });
+		};
+
+		go();
 	};
 }
 
