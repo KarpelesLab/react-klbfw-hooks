@@ -84,6 +84,11 @@ export function setPromise(ctx, prom) {
 	ctx["@promises"].add(prom);
 }
 
+// usePromise regs a promise for wait in ssr mode
+export function usePromise(prom) {
+	setPromise(useVarCtx(), prom);
+}
+
 // this function will return a ssr renderer for a given root component.
 // example use: global._renderToString = makeRenderer(<App/>);
 export function makeRenderer(app, promises) {
