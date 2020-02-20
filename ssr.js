@@ -52,7 +52,7 @@ export function useVar(varName, defaultValue) {
 export function getVarSetter(ctx, varName, defaultValue) {
 	if (!ctx.hasOwnProperty(varName)) {
 		ctx[varName] = {
-			value: v,
+			value: defaultValue,
 			subscribers: new Set(),
 			setter: newVal => {
 				ctx[varName].value = newVal;
