@@ -141,7 +141,7 @@ export function makeRenderer(app, promises) {
 			// import promises on first run (if any)
 			if (promises instanceof Array) {
 				for (let i = 0; i < promises.length; i++) {
-					varCtx["@promises"].set(promises[i]);
+					varCtx["@promises"].add(promises[i]);
 				}
 				promises = null;
 			}
