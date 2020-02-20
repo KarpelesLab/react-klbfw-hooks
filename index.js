@@ -1,2 +1,2 @@
-export { useVar, useVarCtx, setPromise, run } from "./ssr";
-export { useRest } from "./rest";
+export { useVar, useVarCtx, useVarSetter, setPromise, run } from "./ssr";
+export { useRest, useRestRefresh } from "./rest";

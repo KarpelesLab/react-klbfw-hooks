@@ -1,5 +1,5 @@
 import {rest} from "@karpeleslab/klbfw";
-import {useVar, setPromise, useVarCtx} from "./ssr";
+import {useVar, setPromise, useVarCtx, getVarSetter} from "./ssr";
 
 // this performs get requests
 export function useRest(path, params, noThrow) {
@@ -32,12 +32,16 @@ export function useRest(path, params, noThrow) {
 		};
 		ctxRest[path+"?"+params] = restData;
 
-		restData.refresh = (background) => {
+		restData.refresh = (value) => {
+			if (typeof value === "object") {
+				restData.set({value: value});
+				return;
+			}
 			let prom = rest(restData.path, "GET", restData.params);
 
 			prom.then(res => restData.set({value: res})).catch(e => restData.set({error: e}));
 
-			if (background !== true) {
+			if (value !== true) {
 				restData.set(null);
 			}
 			return prom;
@@ -64,4 +68,61 @@ export function useRest(path, params, noThrow) {
 	}
 
 	return [v.value, restData.refresh];
+}
+
+// this performs get requests
+export function useRestRefresh(path, params) {
+	// ensure params is a string
+	switch(typeof params) {
+	case "string":
+		break;
+	case "undefined":
+		params = "";
+		break;
+	default:
+		params = JSON.stringify(params);
+	}
+
+	const ctx = useVarCtx();
+	const [v, setV] = getVarSetter(ctx, path+"?"+params, null);
+
+	if (!ctx.hasOwnProperty("@rest")) {
+		ctx["@rest"] = {};
+	}
+	const ctxRest = ctx["@rest"];
+
+	let restData = null;
+
+	if (!ctxRest.hasOwnProperty(path+"?"+params)) {
+		restData = {
+			path: path,
+			params: params,
+			set: setV
+		};
+		ctxRest[path+"?"+params] = restData;
+
+		restData.refresh = (value) => {
+			if (typeof value === "object") {
+				restData.set({value: value});
+				return;
+			}
+			let prom = rest(restData.path, "GET", restData.params);
+
+			prom.then(res => restData.set({value: res})).catch(e => restData.set({error: e}));
+
+			if (value !== true) {
+				restData.set(null);
+			}
+			return prom;
+		};
+
+		// only trigget API call if we do not have a value yet
+		if (v == null) {
+			setPromise(ctx, restData.refresh());
+		}
+	} else {
+		restData = ctxRest[path+"?"+params];
+	}
+
+	return restData.refresh;
 }

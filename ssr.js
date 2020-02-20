@@ -49,6 +49,28 @@ export function useVar(varName, defaultValue) {
 	return [v, ctx[varName].setter];
 }
 
+export function getVarSetter(ctx, varName, defaultValue) {
+	if (!ctx.hasOwnProperty(varName)) {
+		ctx[varName] = {
+			value: v,
+			subscribers: new Set(),
+			setter: newVal => {
+				ctx[varName].value = newVal;
+				ctx[varName].subscribers.forEach(cb => cb(newVal));
+			}
+		};
+	}
+
+	return [ctx[varName].value, ctx[varName].setter];
+}
+
+export function useVarSetter(varName, defaultValue) {
+	const ctx = useContext(Context);
+	const [, setValue] = getVarSetter(ctx, varName, defaultValue);
+
+	return setValue;
+}
+
 export function useVarCtx() {
 	return useContext(Context);
 }
