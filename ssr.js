@@ -78,14 +78,15 @@ export function useVarCtx() {
 // setPromise will register a given promise to be known
 export function setPromise(ctx, prom) {
 	if (!ctx.hasOwnProperty("@promises")) {
-		ctx["@promises"] = new Set();
+		// do not do anything if no @promises (ie. when running outside of SSR)
+		return;
 	}
 	ctx["@promises"].add(prom);
 }
 
 // this function will return a ssr renderer for a given root component.
 // example use: global._renderToString = makeRenderer(<App/>);
-export function makeRenderer(app) {
+export function makeRenderer(app, promises) {
 	return function(cbk) {
 		let result = { uuid: getUuid(), initial: {} };
 
@@ -137,6 +138,14 @@ export function makeRenderer(app) {
 		let go = function() {
 			varCtx["@promises"] = new Set();
 
+			// import promises on first run (if any)
+			if (promises instanceof Array) {
+				for (let i = 0; i < promises.length; i++) {
+					varCtx["@promises"].set(promises[i]);
+				}
+				promises = null;
+			}
+
 			result.app = renderToString(app);
 
 			if (varCtx["@promises"].size == 0) {
@@ -153,7 +162,7 @@ export function makeRenderer(app) {
 	};
 }
 
-export function run(app) {
+export function run(app, promises) {
 	if (typeof window !== 'undefined') {
 		let ctx = {};
 
@@ -191,6 +200,6 @@ export function run(app) {
 		ReactDOM.render(app, document.getElementById('root'));
 	} else {
 		// we're running on server side, let the server do the work through a custom renderer
-		global._renderToString = makeRenderer(app);
+		global._renderToString = makeRenderer(app, promises);
 	}
 }
