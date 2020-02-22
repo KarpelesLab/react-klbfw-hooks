@@ -138,8 +138,8 @@ export function useRestResetter() {
 		ctx["@rest"] = {};
 
 		// trigger state erasure everywhere
-		oldRest.forEach(restData => {
-			restData.set(null);
-		});
+		for(let k in oldRest) {
+			oldRest[k].set(null);
+		}
 	};
 }
