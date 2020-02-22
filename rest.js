@@ -126,3 +126,20 @@ export function useRestRefresh(path, params) {
 
 	return restData.refresh;
 }
+
+// clear all cache (on logout, for example)
+export function useRestResetter() {
+	const ctx = useVarCtx();
+
+	return () => {
+		if (!ctx.hasOwnProperty("@rest")) return; // no rest
+
+		const oldRest = ctx["@rest"];
+		ctx["@rest"] = {};
+
+		// trigger state erasure everywhere
+		oldRest.forEach(restData => {
+			restData.set(null);
+		});
+	};
+}
