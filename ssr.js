@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { BrowserRouter, StaticRouter } from "react-router-dom";
-import { getPrefix, getUuid, getUrl, getInitialState } from "@karpeleslab/klbfw";
+import { getPrefix, getUuid, getPath, getInitialState } from "@karpeleslab/klbfw";
 import { Helmet } from "react-helmet";
 
 export const Context = React.createContext({});
@@ -103,7 +103,7 @@ export function makeRenderer(app, promises) {
 				{value: varCtx},
 				React.createElement(
 					StaticRouter,
-					{context: context, basename: getPrefix(), location: getUrl().full},
+					{context: context, basename: getPrefix(), location: getPrefix()+getPath()},
 					app
 				)
 			);
