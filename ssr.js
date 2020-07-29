@@ -16,21 +16,25 @@ Context.displayName = "Context";
 export function useVar(varName, defaultValue) {
 	const ctx = useContext(Context);
 
-	// if we already know this value, force default to it so we do not have to re-render
-	if (ctx.hasOwnProperty(varName)) {
-		defaultValue = ctx[varName].value;
-	}
-
 	// generate state
-	const [v, setV] = useState(defaultValue);
+	const [v, setV] = useState({key: varName});
+
+	if (v.key != varName) {
+		// remove from old var
+		if (ctx.hasOwnProperty(v.key)) {
+			ctx[v.key].subscribers.delete(setV);
+		}
+
+		v.key = varName; // update value without re-render
+	}
 
 	if (!ctx.hasOwnProperty(varName)) {
 		ctx[varName] = {
-			value: v,
+			value: defaultValue,
 			subscribers: new Set(),
 			setter: newVal => {
 				ctx[varName].value = newVal;
-				ctx[varName].subscribers.forEach(cb => cb(newVal));
+				ctx[varName].subscribers.forEach(cb => cb({key: varName, newVal: newVal}));
 			}
 		};
 	}
@@ -46,7 +50,7 @@ export function useVar(varName, defaultValue) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	return [v, ctx[varName].setter];
+	return [ctx[varName].value, ctx[varName].setter];
 }
 
 export function getVarSetter(ctx, varName, defaultValue) {
