@@ -60,7 +60,7 @@ export function getVarSetter(ctx, varName, defaultValue) {
 			subscribers: new Set(),
 			setter: newVal => {
 				ctx[varName].value = newVal;
-				ctx[varName].subscribers.forEach(cb => cb(newVal));
+				ctx[varName].subscribers.forEach(cb => cb({key: varName, newVal: newVal}));
 			}
 		};
 	}
@@ -196,7 +196,7 @@ export function run(app, promises) {
 					subscribers: new Set(),
 					setter: newVal => {
 						ctx[varName].value = newVal;
-						ctx[varName].subscribers.forEach(cb => cb(newVal));
+						ctx[varName].subscribers.forEach(cb => cb({key: varName, newVal: newVal}));
 					}
 				};
 			}
