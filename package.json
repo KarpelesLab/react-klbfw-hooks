@@ -17,6 +17,10 @@
   },
   "homepage": "https://github.com/KarpelesLab/react-klbfw-hooks#readme",
   "dependencies": {
-    "@karpeleslab/klbfw": "^0.0.25"
+    "@karpeleslab/klbfw": "^0.0.25",
+    "react": "^16.12.0"
+  },
+  "devDependencies": {
+    "@types/react": "^16.9.44"
   }
 }
