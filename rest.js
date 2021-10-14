@@ -2,7 +2,7 @@ import {rest} from "@karpeleslab/klbfw";
 import {useVar, setPromise, useVarCtx, getVarSetter} from "./ssr";
 
 // this performs get requests
-export function useRest(path, params, noThrow) {
+export function useRest(path, params, noThrow, cacheLifeTime = undefined) {
 	// ensure params is a string
 	switch(typeof params) {
 	case "string":
@@ -28,7 +28,8 @@ export function useRest(path, params, noThrow) {
 		restData = {
 			path: path,
 			params: params,
-			set: setV
+			set: setV,
+			time: undefined,
 		};
 		ctxRest[path+"?"+params] = restData;
 
@@ -37,9 +38,13 @@ export function useRest(path, params, noThrow) {
 				restData.set({value: value});
 				return;
 			}
+
 			let prom = rest(restData.path, "GET", restData.params);
 
-			prom.then(res => restData.set({value: res})).catch(e => restData.set({error: e}));
+			prom
+				.then(res => restData.set({value: res}))
+				.catch(e => restData.set({error: e}))
+				.finally(() => restData.time = new Date().getTime());
 
 			if (value !== true) {
 				restData.set(null);
@@ -47,13 +52,19 @@ export function useRest(path, params, noThrow) {
 			return prom;
 		};
 
-		// only trigget API call if we do not have a value yet
-		if (v == null) {
+		// only trigger API call if we do not have a value yet or we provide a cacheLifeTime
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime  )
+		if (v == null || cacheLifeTimeReached) {
 			setPromise(ctx, restData.refresh());
 		}
 	} else {
 		restData = ctxRest[path+"?"+params];
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && (new Date().getTime() - restData.time) > cacheLifeTime  )
+		if (cacheLifeTimeReached) {
+			setPromise(ctx, restData.refresh());
+		}
 	}
+
 
 	if (v == null) {
 		return [null, restData.refresh];
@@ -71,7 +82,7 @@ export function useRest(path, params, noThrow) {
 }
 
 // this performs get requests
-export function useRestRefresh(path, params) {
+export function useRestRefresh(path, params, cacheLifeTime = undefined) {
 	// ensure params is a string
 	switch(typeof params) {
 	case "string":
@@ -97,7 +108,8 @@ export function useRestRefresh(path, params) {
 		restData = {
 			path: path,
 			params: params,
-			set: setV
+			set: setV,
+			time: undefined,
 		};
 		ctxRest[path+"?"+params] = restData;
 
@@ -108,7 +120,10 @@ export function useRestRefresh(path, params) {
 			}
 			let prom = rest(restData.path, "GET", restData.params);
 
-			prom.then(res => restData.set({value: res})).catch(e => restData.set({error: e}));
+			prom
+				.then(res => restData.set({value: res}))
+				.catch(e => restData.set({error: e}))
+				.finally(() => restData.time = new Date().getTime());
 
 			if (value !== true) {
 				restData.set(null);
@@ -117,11 +132,16 @@ export function useRestRefresh(path, params) {
 		};
 
 		// only trigget API call if we do not have a value yet
-		if (v == null) {
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime  )
+		if (v == null || cacheLifeTimeReached) {
 			setPromise(ctx, restData.refresh());
 		}
 	} else {
 		restData = ctxRest[path+"?"+params];
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime  )
+		if (cacheLifeTimeReached) {
+			setPromise(ctx, restData.refresh());
+		}
 	}
 
 	return restData.refresh;
