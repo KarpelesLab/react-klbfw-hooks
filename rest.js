@@ -2,7 +2,7 @@ import {rest} from "@karpeleslab/klbfw";
 import {useVar, setPromise, useVarCtx, getVarSetter} from "./ssr";
 
 // this performs get requests
-export function useRest(path, params, noThrow, cacheLifeTime = undefined) {
+export function useRest(path, params, noThrow, cacheLifeTime) {
 	// ensure params is a string
 	switch(typeof params) {
 	case "string":
@@ -53,14 +53,16 @@ export function useRest(path, params, noThrow, cacheLifeTime = undefined) {
 		};
 
 		// only trigger API call if we do not have a value yet or we provide a cacheLifeTime
-		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime  )
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime)
 		if (v == null || cacheLifeTimeReached) {
+			restData.time = undefined;
 			setPromise(ctx, restData.refresh());
 		}
 	} else {
 		restData = ctxRest[path+"?"+params];
-		const cacheLifeTimeReached = (cacheLifeTime && restData.time && (new Date().getTime() - restData.time) > cacheLifeTime  )
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && (new Date().getTime() - restData.time) > cacheLifeTime)
 		if (cacheLifeTimeReached) {
+			restData.time = undefined;
 			setPromise(ctx, restData.refresh());
 		}
 	}
@@ -82,7 +84,7 @@ export function useRest(path, params, noThrow, cacheLifeTime = undefined) {
 }
 
 // this performs get requests
-export function useRestRefresh(path, params, cacheLifeTime = undefined) {
+export function useRestRefresh(path, params, cacheLifeTime) {
 	// ensure params is a string
 	switch(typeof params) {
 	case "string":
@@ -132,14 +134,16 @@ export function useRestRefresh(path, params, cacheLifeTime = undefined) {
 		};
 
 		// only trigget API call if we do not have a value yet
-		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime  )
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime)
 		if (v == null || cacheLifeTimeReached) {
+			restData.time = undefined;
 			setPromise(ctx, restData.refresh());
 		}
 	} else {
 		restData = ctxRest[path+"?"+params];
-		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime  )
+		const cacheLifeTimeReached = (cacheLifeTime && restData.time && ((new Date().getTime()) - restData.time) > cacheLifeTime)
 		if (cacheLifeTimeReached) {
+			restData.time = undefined;
 			setPromise(ctx, restData.refresh());
 		}
 	}
