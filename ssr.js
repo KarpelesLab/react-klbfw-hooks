@@ -206,6 +206,7 @@ export function run(app, promises) {
 			} else {
 				// wait for promises
 				Promise.all(promises).finally(function() { ReactDOM.hydrate(app, document.getElementById('root')); });
+			}
 			return;
 		}
 
