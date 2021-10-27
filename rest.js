@@ -67,7 +67,6 @@ export function useRest(path, params, noThrow, cacheLifeTime) {
 		}
 	}
 
-
 	if (v == null) {
 		return [null, restData.refresh];
 	}

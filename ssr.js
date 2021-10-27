@@ -201,12 +201,20 @@ export function run(app, promises) {
 				};
 			}
 
-			ReactDOM.hydrate(app, document.getElementById('root'));
+			if (typeof promises === 'undefined') {
+				ReactDOM.hydrate(app, document.getElementById('root'));
+			} else {
+				// wait for promises
+				Promise.all(promises).finally(function() { ReactDOM.hydrate(app, document.getElementById('root')); });
 			return;
 		}
 
 		// SSR did not run, go through rendering
-		ReactDOM.render(app, document.getElementById('root'));
+		if (typeof promises === 'undefined') {
+			ReactDOM.render(app, document.getElementById('root'));
+		} else {
+			Promise.all(promises).finally(function() { ReactDOM.render(app, document.getElementById('root')); });
+		}
 	} else {
 		// we're running on server side, let the server do the work through a custom renderer
 		global._renderToString = makeRenderer(app, promises);
