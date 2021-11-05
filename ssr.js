@@ -102,12 +102,18 @@ export function makeRenderer(app, promises) {
 		let context = {};
 		let varCtx = {};
 
+		let search = "";
+		let getUrlResult = getUrl();
+		if (typeof getUrlResult.query !== "undefined") {
+			search = "?" + getUrlResult.query;
+		}
+
 		app = React.createElement(
 				Context.Provider,
 				{value: varCtx},
 				React.createElement(
 					StaticRouter,
-					{context: context, basename: getPrefix(), location: { pathname: getPrefix()+getPath(), search: getUrl().query }},
+					{context: context, basename: getPrefix(), location: { pathname: getPrefix()+getPath(), search: search }},
 					app
 				)
 			);
