@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import * as ReactDOM from 'react-dom';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import * as ReactDOMServer from 'react-dom/server';
 import { BrowserRouter } from "react-router-dom";
 import { StaticRouter } from "react-router-dom/server";
@@ -266,11 +266,11 @@ export function run(app, promises) {
 			}
 
 			if (typeof promises === 'undefined') {
-				ReactDOM.hydrateRoot(document.getElementById('root'), app);
+				hydrateRoot(document.getElementById('root'), app);
 			} else {
 				// wait for promises
 				Promise.all(promises).finally(function() { 
-					ReactDOM.hydrateRoot(document.getElementById('root'), app);
+					hydrateRoot(document.getElementById('root'), app);
 				});
 			}
 			return;
@@ -278,10 +278,10 @@ export function run(app, promises) {
 
 		// SSR did not run, go through rendering
 		if (typeof promises === 'undefined') {
-			ReactDOM.createRoot(document.getElementById('root')).render(app);
+			createRoot(document.getElementById('root')).render(app);
 		} else {
 			Promise.all(promises).finally(function() { 
-				ReactDOM.createRoot(document.getElementById('root')).render(app);
+				createRoot(document.getElementById('root')).render(app);
 			});
 		}
 	} else {
