@@ -221,7 +221,18 @@ export function makeRenderer(routes, promises, options = {}) {
 			try {
 				// Handle initial promises if needed (for backward compatibility)
 				if (promises instanceof Array && promises.length > 0) {
-					await Promise.all(promises);
+					try {
+						// Wait for promises with a timeout
+						await Promise.race([
+							Promise.all(promises),
+							new Promise((_, reject) => 
+								setTimeout(() => reject(new Error('Promise timeout after 10 seconds')), 10000)
+							)
+						]);
+					} catch (promiseError) {
+						console.error('Error resolving server-side promises:', promiseError);
+						// Continue rendering even if promises fail
+					}
 				}
 				
 				// Render the application using ReactDOMServer
@@ -329,10 +340,18 @@ export function run(routes, promisesOrOptions, options) {
 			if (typeof promises === 'undefined') {
 				hydrateRoot(document.getElementById('root'), app);
 			} else {
-				// wait for promises
-				Promise.all(promises).finally(function() { 
-					hydrateRoot(document.getElementById('root'), app);
-				});
+				// wait for promises with error handling and timeout
+				Promise.race([
+					Promise.all(promises),
+					new Promise(resolve => setTimeout(resolve, 10000)) // 10 second timeout
+				])
+				.then(
+					() => hydrateRoot(document.getElementById('root'), app),
+					(error) => {
+						console.error('Error resolving promises:', error);
+						hydrateRoot(document.getElementById('root'), app);
+					}
+				);
 			}
 			return;
 		}
@@ -341,9 +360,18 @@ export function run(routes, promisesOrOptions, options) {
 		if (typeof promises === 'undefined') {
 			createRoot(document.getElementById('root')).render(app);
 		} else {
-			Promise.all(promises).finally(function() { 
-				createRoot(document.getElementById('root')).render(app);
-			});
+			// wait for promises with error handling and timeout
+			Promise.race([
+				Promise.all(promises),
+				new Promise(resolve => setTimeout(resolve, 10000)) // 10 second timeout
+			])
+			.then(
+				() => createRoot(document.getElementById('root')).render(app),
+				(error) => {
+					console.error('Error resolving promises:', error);
+					createRoot(document.getElementById('root')).render(app);
+				}
+			);
 		}
 	} else {
 		// we're running on server side, let the server do the work through a custom renderer
