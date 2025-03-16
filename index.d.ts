@@ -13,7 +13,7 @@ export function useVarCtx<T>(): T;
 export function useVarSetter<T>(varName: string, defaultValue: T): (newValue: T) =>  void;
 export function usePromise(prom: Promise<any>):  void;
 export function setPromise<T>(ctx: Context<T>,prom: Promise<any>):  void;
-export function run(app: any, promises?: Array<Promise<any>>):  void;
+export function run(routesOrApp: any, promises?: Array<Promise<any>>):  void;
 
 // rest
 

@@ -8,6 +8,14 @@ A collection of React hooks and SSR utilities for [KarpelesLab Framework](https:
 npm install @karpeleslab/react-klbfw-hooks
 ```
 
+## Features
+
+* Shared state across components through named variables
+* SSR (Server-Side Rendering) with React
+* REST API integration with caching
+* React Router v7 support for modern routing with SSR
+* Promise handling for data loading during SSR
+
 ## Available Hooks
 
 * **useRest(path, params, noThrow, cacheLifeTime)**: Fetches data from your backend with automatic caching and SSR support
@@ -19,11 +27,11 @@ npm install @karpeleslab/react-klbfw-hooks
 
 ## Usage
 
-### run(app, promises)
+### run(routesOrApp, promises)
 
 The entry point function that replaces ReactDOM.render/hydrate with SSR support.
 
-Basic usage in your `index.js`:
+#### Basic usage in your `index.js`:
 
 ```javascript
 import App from './App';
@@ -31,6 +39,64 @@ import { run } from "@karpeleslab/react-klbfw-hooks";
 
 run(<App/>);
 ```
+
+#### With React Router v7:
+
+```javascript
+import { run } from "@karpeleslab/react-klbfw-hooks";
+import { redirect } from "react-router-dom";
+import Home from './routes/Home';
+import About from './routes/About';
+import Contact from './routes/Contact';
+
+// Define your routes
+const routes = [
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/about",
+    element: <About />,
+  },
+  {
+    path: "/contact",
+    element: <Contact />,
+    loader: async () => {
+      // Load data needed for this route
+      const data = await fetch('/api/contact-info').then(r => r.json());
+      return data;
+    }
+  },
+  {
+    path: "/redirect",
+    loader: () => {
+      // Redirect example with status code
+      return redirect("/about", 301);
+    }
+  }
+];
+
+// Pass routes directly to run
+run(routes);
+```
+
+### Server-Side Rendering with React Router v7
+
+The library provides full support for React Router v7 SSR features including:
+
+- **Data Loading**: Routes with loaders will have their data pre-loaded during SSR
+- **Redirects**: Redirect responses from loaders are properly handled with status codes preserved
+- **Static Router**: Uses the modern React Router v7 data APIs (createStaticHandler, createStaticRouter, StaticRouterProvider)
+
+Under the hood, the implementation:
+
+1. Creates a static handler from routes using `createStaticHandler`
+2. Processes routes with `query` function to detect redirects and load data
+3. Renders using `createStaticRouter` and `StaticRouterProvider`
+4. Preserves HTTP status codes (301, 302, etc.) for proper SEO
+
+This allows you to use all modern React Router features while still benefiting from server-side rendering.
 
 With i18n support:
 
