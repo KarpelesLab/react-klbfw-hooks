@@ -1,6 +1,6 @@
 {
   "name": "@karpeleslab/react-klbfw-hooks",
-  "version": "0.1.21",
+  "version": "0.2.0",
   "description": "Various hooks for klbfw",
   "main": "index.js",
   "scripts": {
@@ -18,9 +18,9 @@
   "homepage": "https://github.com/KarpelesLab/react-klbfw-hooks#readme",
   "dependencies": {
     "@karpeleslab/klbfw": "^0.2.1",
-    "react": ">=16.12.0"
+    "react": "^19.0.0"
   },
   "devDependencies": {
-    "@types/react": ">=16.9.44"
+    "@types/react": "^19.0.0"
   }
 }

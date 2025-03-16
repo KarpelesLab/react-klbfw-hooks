@@ -1,7 +1,8 @@
 import React, { useState, useContext, useEffect } from 'react';
-import ReactDOM from 'react-dom';
-import { renderToString } from 'react-dom/server';
-import { BrowserRouter, StaticRouter } from "react-router-dom";
+import * as ReactDOM from 'react-dom';
+import * as ReactDOMServer from 'react-dom/server';
+import { BrowserRouter } from "react-router-dom";
+import { StaticRouter } from "react-router-dom/server";
 import { getPrefix, getUuid, getPath, getUrl, getInitialState } from "@karpeleslab/klbfw";
 import { Helmet } from "react-helmet";
 
@@ -211,7 +212,7 @@ export function makeRenderer(app, promises) {
 				promises = null;
 			}
 
-			result.app = renderToString(app);
+			result.app = ReactDOMServer.renderToString(app);
 
 			if (varCtx["@promises"].size == 0) {
 				// finalize process
@@ -265,19 +266,23 @@ export function run(app, promises) {
 			}
 
 			if (typeof promises === 'undefined') {
-				ReactDOM.hydrate(app, document.getElementById('root'));
+				ReactDOM.hydrateRoot(document.getElementById('root'), app);
 			} else {
 				// wait for promises
-				Promise.all(promises).finally(function() { ReactDOM.hydrate(app, document.getElementById('root')); });
+				Promise.all(promises).finally(function() { 
+					ReactDOM.hydrateRoot(document.getElementById('root'), app);
+				});
 			}
 			return;
 		}
 
 		// SSR did not run, go through rendering
 		if (typeof promises === 'undefined') {
-			ReactDOM.render(app, document.getElementById('root'));
+			ReactDOM.createRoot(document.getElementById('root')).render(app);
 		} else {
-			Promise.all(promises).finally(function() { ReactDOM.render(app, document.getElementById('root')); });
+			Promise.all(promises).finally(function() { 
+				ReactDOM.createRoot(document.getElementById('root')).render(app);
+			});
 		}
 	} else {
 		// we're running on server side, let the server do the work through a custom renderer
