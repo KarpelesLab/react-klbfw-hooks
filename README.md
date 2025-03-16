@@ -27,9 +27,18 @@ npm install @karpeleslab/react-klbfw-hooks
 
 ## Usage
 
-### run(routes, promises)
+### run(routes, promisesOrOptions, options)
 
-The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes object only.
+The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes object and optional configuration.
+
+**Parameters:**
+- `routes`: A React Router routes configuration object
+- `promisesOrOptions`: Either an array of promises to wait for, or an options object
+- `options`: Configuration options (when using promises as the second parameter)
+
+**Options object properties:**
+- `routerProps`: Additional props to pass to the Router component (useful for injecting stores or providers)
+- `contextProps`: Additional props to pass to the internal Context.Provider
 
 #### Basic usage in your `index.js`:
 
@@ -45,6 +54,35 @@ const routes = [
 ];
 
 run(routes);
+```
+
+#### Injecting additional props/providers:
+
+```javascript
+import { run } from "@karpeleslab/react-klbfw-hooks";
+import { Provider } from 'react-redux';
+import { store } from './store';
+import Home from './routes/Home';
+
+const routes = [
+  {
+    path: "/",
+    element: <Home />
+  }
+];
+
+// Inject the Redux store by providing a custom RouterProvider
+run(routes, {
+  routerProps: {
+    // This creates a RouterProvider that will include the store
+    // These props will be passed to the BrowserRouter (client) or StaticRouterProvider (server)
+    children: (routerChildren) => (
+      <Provider store={store}>
+        {routerChildren}
+      </Provider>
+    )
+  }
+});
 ```
 
 #### With React Router v7:

@@ -156,9 +156,11 @@ function createFetchRequest(url, query) {
  * 
  * @param {Array} routes - The route configuration for React Router
  * @param {Array<Promise>} promises - Optional array of promises to wait for
+ * @param {Object} options - Optional configuration options
+ * @param {Object} options.routerProps - Additional props to pass to the StaticRouterProvider
  * @returns {Function} - Renderer function that accepts a callback
  */
-export function makeRenderer(routes, promises) {
+export function makeRenderer(routes, promises, options = {}) {
 	return async function(cbk) {
 		let result = { uuid: getUuid(), initial: {} };
 
@@ -200,15 +202,19 @@ export function makeRenderer(routes, promises) {
 			const router = createStaticRouter(routes, context);
 			
 			// Create the app with our Context provider and StaticRouterProvider
+			// Merge any additional router props from options
+			const routerProps = {
+				router: router,
+				context: context,
+				...(options.routerProps || {})
+			};
+			
 			const app = React.createElement(
 				Context.Provider,
 				{value: varCtx},
 				React.createElement(
 					StaticRouterProvider, 
-					{ 
-						router: router,
-						context: context
-					}
+					routerProps
 				)
 			);
 			
@@ -257,41 +263,49 @@ export function makeRenderer(routes, promises) {
  * Replaces ReactDOM.render/hydrate with SSR support
  * 
  * @param {Object} routes - A React Router routes configuration object
- * @param {Array<Promise>} promises - Optional array of promises to wait for
+ * @param {Array<Promise>|Object} promisesOrOptions - Optional array of promises to wait for, or options object
+ * @param {Object} [options] - Optional configuration options
+ * @param {Object} [options.routerProps] - Additional props to pass to the Router component
+ * @param {Object} [options.contextProps] - Additional props to pass to the Context.Provider
  */
-export function run(routesOrApp, promises) {
+export function run(routes, promisesOrOptions, options) {
+	// Handle different parameter combinations
+	let promises;
+	let opts = {};
+	
+	// Check if promisesOrOptions is an array of promises or an options object
+	if (Array.isArray(promisesOrOptions)) {
+		promises = promisesOrOptions;
+		opts = options || {};
+	} else if (typeof promisesOrOptions === 'object' && promisesOrOptions !== null) {
+		opts = promisesOrOptions || {};
+	}
+	
 	if (typeof window !== 'undefined') {
 		let ctx = {};
-		let app;
 		
-		// Check if we're dealing with routes or an app component
-		const isRoutes = Array.isArray(routesOrApp) || 
-			(routesOrApp && routesOrApp.hasOwnProperty('path') && routesOrApp.hasOwnProperty('element'));
+		// Get router props from options
+		const routerProps = {
+			basename: getPrefix(),
+			...(opts.routerProps || {})
+		};
 		
-		// initialize app for client rendering
-		if (isRoutes) {
-			// Routes configuration - use BrowserRouter
-			app = React.createElement(
-				Context.Provider,
-				{value: ctx},
-				React.createElement(
-					BrowserRouter,
-					{basename: getPrefix()},
-					routesOrApp
-				)
-			);
-		} else {
-			// Regular app component - pass through
-			app = React.createElement(
-				Context.Provider,
-				{value: ctx},
-				React.createElement(
-					BrowserRouter,
-					{basename: getPrefix()},
-					routesOrApp
-				)
-			);
-		}
+		// Get context props from options
+		const contextProps = {
+			value: ctx,
+			...(opts.contextProps || {})
+		};
+		
+		// initialize app for client rendering with route configuration
+		const app = React.createElement(
+			Context.Provider,
+			contextProps,
+			React.createElement(
+				BrowserRouter,
+				routerProps,
+				routes
+			)
+		);
 
 		// read getInitialState()
 		let init = getInitialState();
@@ -329,6 +343,6 @@ export function run(routesOrApp, promises) {
 		}
 	} else {
 		// we're running on server side, let the server do the work through a custom renderer
-		global._renderToString = makeRenderer(routesOrApp, promises);
+		global._renderToString = makeRenderer(routes, promises, opts);
 	}
 }
