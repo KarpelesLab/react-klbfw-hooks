@@ -1,7 +1,15 @@
 import {rest} from "@karpeleslab/klbfw";
 import {useVar, setPromise, useVarCtx, getVarSetter} from "./ssr";
 
-// this performs get requests
+/**
+ * Hook to fetch data from the REST API with caching and SSR support
+ * 
+ * @param {string} path - API endpoint path
+ * @param {string|object} params - Query parameters as string or object
+ * @param {boolean} noThrow - If true, doesn't throw errors but returns [false, refresh]
+ * @param {number} cacheLifeTime - Optional cache lifetime in milliseconds
+ * @returns {Array} - [data, refreshFunction] tuple
+ */
 export function useRest(path, params, noThrow, cacheLifeTime) {
 	// ensure params is a string
 	switch(typeof params) {
@@ -82,7 +90,14 @@ export function useRest(path, params, noThrow, cacheLifeTime) {
 	return [v.value, restData.refresh];
 }
 
-// this performs get requests
+/**
+ * Returns only the refresh function for a REST endpoint without subscribing to updates
+ * 
+ * @param {string} path - API endpoint path
+ * @param {string|object} params - Query parameters as string or object
+ * @param {number} cacheLifeTime - Optional cache lifetime in milliseconds
+ * @returns {Function} - Refresh function that returns a Promise
+ */
 export function useRestRefresh(path, params, cacheLifeTime) {
 	// ensure params is a string
 	switch(typeof params) {
@@ -150,7 +165,12 @@ export function useRestRefresh(path, params, cacheLifeTime) {
 	return restData.refresh;
 }
 
-// clear all cache (on logout, for example)
+/**
+ * Returns a function that clears all REST API cache
+ * Useful for scenarios like logout where you want to reset all cached data
+ * 
+ * @returns {Function} - Function that clears all REST cache when called
+ */
 export function useRestResetter() {
 	const ctx = useVarCtx();
 

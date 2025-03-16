@@ -1,18 +1,29 @@
-# Hooks for klbfw
+# React Hooks for KLBFW
 
-This provides different hooks and ssr mechanics for klbfw.
+A collection of React hooks and SSR utilities for [KarpelesLab Framework](https://github.com/KarpelesLab/klbfw).
 
-* useRest(path, params): allows to easily grab data from our backend
-* useVar(varName): shared state by name
-* usePromise(promise): sets a promise that the server needs to wait for in SSR
+## Installation
 
-# Usage
+```bash
+npm install @karpeleslab/react-klbfw-hooks
+```
 
-## run(app, promises)
+## Available Hooks
 
-Replaces ReactDOM.render.
+* **useRest(path, params, noThrow, cacheLifeTime)**: Fetches data from your backend with automatic caching and SSR support
+* **useVar(varName, defaultValue)**: Provides shared state accessible by name throughout your application
+* **useVarSetter(varName, defaultValue)**: Returns only a setter for the given variable without subscribing to updates
+* **usePromise(promise)**: Registers a promise for SSR to wait for before rendering
+* **useRestRefresh(path, params, cacheLifeTime)**: Returns only the refresh function for a REST endpoint
+* **useRestResetter()**: Returns a function to clear all REST cache (useful for logout)
 
-Minimum usage, in file `index.js`:
+## Usage
+
+### run(app, promises)
+
+The entry point function that replaces ReactDOM.render/hydrate with SSR support.
+
+Basic usage in your `index.js`:
 
 ```javascript
 import App from './App';
@@ -21,7 +32,7 @@ import { run } from "@karpeleslab/react-klbfw-hooks";
 run(<App/>);
 ```
 
-With I18N:
+With i18n support:
 
 ```javascript
 import App from './App';
@@ -46,26 +57,105 @@ let i18nOpt = {
 run(<App/>, [i18n.use(Backend).use(initReactI18next).init(i18nOpt)]);
 ```
 
-## useVar(varname, default)
+### useVar(varName, defaultValue)
 
-Hook for named variables which share a value anywhere in the application.
+Hook for creating/accessing named variables which share a value anywhere in the application.
 
 ```javascript
-function Foo() {
-	const [value, setValue] = useVar("foo", 0);
+function Counter() {
+	const [count, setCount] = useVar("counter", 0);
 
-	return <div>foo is {value} <button onClick={() => setValue(value+1)}>+1</button></div>;
+	return (
+		<div>
+			Count is {count}
+			<button onClick={() => setCount(count + 1)}>Increment</button>
+		</div>
+	);
 }
 ```
 
-## useVarSetter(varname, default)
+In another component:
 
-Returns only a setter for the given variable, not subscribing the current component to variable updates.
+```javascript
+function DisplayCounter() {
+	const [count] = useVar("counter", 0);
+	return <div>Current count: {count}</div>;
+}
+```
 
-## usePromise(promise)
+### useVarSetter(varName, defaultValue)
 
-Handle re-render for a given promise in SSR.
+Returns only a setter for the given variable, without subscribing the current component to variable updates.
 
-## useRest(path, params)
+```javascript
+function CounterControl() {
+	const setCount = useVarSetter("counter", 0);
+	return <button onClick={() => setCount(0)}>Reset Counter</button>;
+}
+```
 
-Perform a rest() GET action on a given path, caching the result and returning it in a way that is safe to use during rendering.
+### usePromise(promise)
+
+Registers a promise that the server needs to wait for in SSR before rendering. Useful for ensuring data is available during server-side rendering.
+
+```javascript
+function DataComponent() {
+	const [data, setData] = useState(null);
+	
+	useEffect(() => {
+		const promise = fetchData().then(result => setData(result));
+		usePromise(promise);
+	}, []);
+	
+	return <div>{data ? JSON.stringify(data) : "Loading..."}</div>;
+}
+```
+
+### useRest(path, params, noThrow, cacheLifeTime)
+
+Performs a REST GET request to the specified path, caching the result and returning it in a way that is safe for rendering.
+
+```javascript
+function UserProfile({ userId }) {
+	const [user, refreshUser] = useRest(`/api/users/${userId}`);
+	
+	return (
+		<div>
+			{user ? (
+				<>
+					<h2>{user.name}</h2>
+					<p>{user.email}</p>
+					<button onClick={refreshUser}>Refresh</button>
+				</>
+			) : "Loading..."}
+		</div>
+	);
+}
+```
+
+With parameters:
+
+```javascript
+function SearchResults() {
+	const [query, setQuery] = useState("");
+	const [results, refreshResults] = useRest("/api/search", { q: query });
+	
+	return (
+		<div>
+			<input 
+				value={query} 
+				onChange={e => setQuery(e.target.value)} 
+			/>
+			<button onClick={refreshResults}>Search</button>
+			
+			{results && results.map(item => (
+				<div key={item.id}>{item.title}</div>
+			))}
+		</div>
+	);
+}
+```
+
+## License
+
+MIT

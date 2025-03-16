@@ -5,14 +5,26 @@ import { BrowserRouter, StaticRouter } from "react-router-dom";
 import { getPrefix, getUuid, getPath, getUrl, getInitialState } from "@karpeleslab/klbfw";
 import { Helmet } from "react-helmet";
 
+/**
+ * Context for the shared variable system
+ * This is used internally by all hooks to maintain shared state
+ */
 export const Context = React.createContext({});
 Context.displayName = "Context";
 
-// useVar works similar to setState() except:
-// - all vars with the same name will share the same value
-// - values will be passed to the client mode when running in SSR, so avoid storing stuff that is not json friendly in there (instances, etc)
-// - setter will always be the same object for a given variable
-// - special case: variable maes starting with a "@" will not be passed to client
+/**
+ * Creates/accesses a named variable with shared state across components
+ * 
+ * useVar works similar to useState() except:
+ * - All vars with the same name will share the same value
+ * - Values will be passed to the client mode when running in SSR, so avoid storing stuff that is not JSON friendly
+ * - Setter will always be the same object for a given variable
+ * - Special case: variable names starting with a "@" will not be passed to client
+ * 
+ * @param {string} varName - The name of the shared variable
+ * @param {any} defaultValue - Default value if the variable doesn't exist yet
+ * @returns {Array} - [value, setter] tuple similar to useState
+ */
 export function useVar(varName, defaultValue) {
 	const ctx = useContext(Context);
 
@@ -53,6 +65,14 @@ export function useVar(varName, defaultValue) {
 	return [ctx[varName].value, ctx[varName].setter];
 }
 
+/**
+ * Internal helper function to get or create a variable setter in a context
+ * 
+ * @param {Object} ctx - The context object
+ * @param {string} varName - The name of the shared variable
+ * @param {any} defaultValue - Default value if the variable doesn't exist yet
+ * @returns {Array} - [value, setter] tuple
+ */
 export function getVarSetter(ctx, varName, defaultValue) {
 	if (!ctx.hasOwnProperty(varName)) {
 		ctx[varName] = {
@@ -68,6 +88,13 @@ export function getVarSetter(ctx, varName, defaultValue) {
 	return [ctx[varName].value, ctx[varName].setter];
 }
 
+/**
+ * Returns only a setter for a named variable, without subscribing to updates
+ * 
+ * @param {string} varName - The name of the shared variable
+ * @param {any} defaultValue - Default value if the variable doesn't exist yet
+ * @returns {Function} - Setter function for the named variable
+ */
 export function useVarSetter(varName, defaultValue) {
 	const ctx = useContext(Context);
 	const [, setValue] = getVarSetter(ctx, varName, defaultValue);
@@ -75,11 +102,21 @@ export function useVarSetter(varName, defaultValue) {
 	return setValue;
 }
 
+/**
+ * Returns the current context object for direct access
+ * 
+ * @returns {Object} - The current context object
+ */
 export function useVarCtx() {
 	return useContext(Context);
 }
 
-// setPromise will register a given promise to be known
+/**
+ * Registers a promise for SSR to wait on before rendering
+ * 
+ * @param {Object} ctx - The context object
+ * @param {Promise} prom - The promise to register
+ */
 export function setPromise(ctx, prom) {
 	if (!ctx.hasOwnProperty("@promises")) {
 		// do not do anything if no @promises (ie. when running outside of SSR)
@@ -88,13 +125,26 @@ export function setPromise(ctx, prom) {
 	ctx["@promises"].add(prom);
 }
 
-// usePromise regs a promise for wait in ssr mode
+/**
+ * Hook to register a promise for SSR to wait on before rendering
+ * Used to ensure data is available during server-side rendering
+ * 
+ * @param {Promise} prom - The promise to register
+ */
 export function usePromise(prom) {
 	setPromise(useVarCtx(), prom);
 }
 
-// this function will return a ssr renderer for a given root component.
-// example use: global._renderToString = makeRenderer(<App/>);
+/**
+ * Creates a server-side renderer function for a given React application
+ * This is used internally by the run() function for SSR mode
+ * 
+ * Example use: global._renderToString = makeRenderer(<App/>);
+ * 
+ * @param {React.ReactNode} app - The root React component
+ * @param {Array<Promise>} promises - Optional array of promises to wait for
+ * @returns {Function} - Renderer function that accepts a callback
+ */
 export function makeRenderer(app, promises) {
 	return function(cbk) {
 		let result = { uuid: getUuid(), initial: {} };
@@ -177,6 +227,13 @@ export function makeRenderer(app, promises) {
 	};
 }
 
+/**
+ * Main entry point for the application
+ * Replaces ReactDOM.render/hydrate with SSR support
+ * 
+ * @param {React.ReactNode} app - The root React component
+ * @param {Array<Promise>} promises - Optional array of promises to wait for
+ */
 export function run(app, promises) {
 	if (typeof window !== 'undefined') {
 		let ctx = {};
