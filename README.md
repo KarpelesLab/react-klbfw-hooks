@@ -29,10 +29,10 @@ npm install @karpeleslab/react-klbfw-hooks
 
 ### run(routes, promisesOrOptions, options)
 
-The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes object and optional configuration.
+The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes array and optional configuration.
 
 **Parameters:**
-- `routes`: A React Router routes configuration object
+- `routes`: An array of React Router Route objects (each with path, element, etc.)
 - `promisesOrOptions`: Either an array of promises to wait for, or an options object
 - `options`: Configuration options (when using promises as the second parameter)
 
@@ -46,6 +46,8 @@ The entry point function that replaces ReactDOM.render/hydrate with SSR support.
 import { run } from "@karpeleslab/react-klbfw-hooks";
 import Home from './routes/Home';
 
+// Define your routes as an array of Route objects
+// Each Route object should have path and element properties
 const routes = [
   {
     path: "/",
@@ -53,6 +55,7 @@ const routes = [
   }
 ];
 
+// Pass the routes array directly to run
 run(routes);
 ```
 
@@ -122,7 +125,8 @@ const routes = [
   }
 ];
 
-// Pass routes directly to run
+// Pass routes array to run
+// IMPORTANT: routes must be an array of Route objects, not a single Routes object
 run(routes);
 ```
 
