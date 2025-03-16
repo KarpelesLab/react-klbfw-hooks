@@ -32,7 +32,7 @@ npm install @karpeleslab/react-klbfw-hooks
 The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes array and optional configuration.
 
 **Parameters:**
-- `routes`: An array of React Router Route objects (each with path, element, etc.)
+- `routes`: An array of React Router `<Route>` elements (e.g., `[<Route path="/" element={<Home />} />]`)
 - `promisesOrOptions`: Either an array of promises to wait for, or an options object
 - `options`: Configuration options (when using promises as the second parameter)
 
@@ -46,13 +46,9 @@ The entry point function that replaces ReactDOM.render/hydrate with SSR support.
 import { run } from "@karpeleslab/react-klbfw-hooks";
 import Home from './routes/Home';
 
-// Define your routes as an array of Route objects
-// Each Route object should have path and element properties
+// Define your routes as an array of React Router <Route> elements
 const routes = [
-  {
-    path: "/",
-    element: <Home />
-  }
+  <Route path="/" element={<Home />} key="home" />
 ];
 
 // Pass the routes array directly to run
@@ -63,15 +59,13 @@ run(routes);
 
 ```javascript
 import { run } from "@karpeleslab/react-klbfw-hooks";
+import { Route } from "react-router-dom";
 import { Provider } from 'react-redux';
 import { store } from './store';
 import Home from './routes/Home';
 
 const routes = [
-  {
-    path: "/",
-    element: <Home />
-  }
+  <Route path="/" element={<Home />} key="home" />
 ];
 
 // Inject the Redux store by providing a custom RouterProvider
@@ -92,41 +86,37 @@ run(routes, [], {
 
 ```javascript
 import { run } from "@karpeleslab/react-klbfw-hooks";
-import { redirect } from "react-router-dom";
+import { redirect, Route } from "react-router-dom";
 import Home from './routes/Home';
 import About from './routes/About';
 import Contact from './routes/Contact';
 
-// Define your routes
+// Define your routes as an array of <Route> elements
 const routes = [
-  {
-    path: "/",
-    element: <Home />,
-  },
-  {
-    path: "/about",
-    element: <About />,
-  },
-  {
-    path: "/contact",
-    element: <Contact />,
-    loader: async () => {
+  <Route path="/" element={<Home />} key="home" />,
+  <Route path="/about" element={<About />} key="about" />,
+  <Route 
+    path="/contact" 
+    element={<Contact />} 
+    loader={async () => {
       // Load data needed for this route
       const data = await fetch('/api/contact-info').then(r => r.json());
       return data;
-    }
-  },
-  {
-    path: "/redirect",
-    loader: () => {
+    }}
+    key="contact"
+  />,
+  <Route 
+    path="/redirect" 
+    loader={() => {
       // Redirect example with status code
       return redirect("/about", 301);
-    }
-  }
+    }}
+    key="redirect"
+  />
 ];
 
 // Pass routes array to run
-// IMPORTANT: routes must be an array of Route objects, not a single Routes object
+// IMPORTANT: routes must be an array of <Route> elements, not route configuration objects
 run(routes);
 ```
 
@@ -151,6 +141,7 @@ With i18n support:
 
 ```javascript
 import { run } from "@karpeleslab/react-klbfw-hooks";
+import { Route } from "react-router-dom";
 import Home from './routes/Home';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
@@ -169,11 +160,9 @@ let i18nOpt = {
 	}
 };
 
+// Define your routes as an array of <Route> elements
 const routes = [
-  {
-    path: "/",
-    element: <Home />
-  }
+  <Route path="/" element={<Home />} key="home" />
 ];
 
 run(routes, [i18n.use(Backend).use(initReactI18next).init(i18nOpt)]);
