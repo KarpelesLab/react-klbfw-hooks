@@ -29,7 +29,7 @@ npm install @karpeleslab/react-klbfw-hooks
 
 ### run(routes, promises)
 
-The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes object (not an App component).
+The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes object only.
 
 #### Basic usage in your `index.js`:
 

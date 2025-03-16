@@ -256,7 +256,7 @@ export function makeRenderer(routes, promises) {
  * Main entry point for the application
  * Replaces ReactDOM.render/hydrate with SSR support
  * 
- * @param {Object} routesOrApp - Either a React Router routes configuration object or a React component
+ * @param {Object} routes - A React Router routes configuration object
  * @param {Array<Promise>} promises - Optional array of promises to wait for
  */
 export function run(routesOrApp, promises) {
