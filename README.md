@@ -29,10 +29,10 @@ npm install @karpeleslab/react-klbfw-hooks
 
 ### run(routes, promisesOrOptions, options)
 
-The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes array and optional configuration.
+The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a route configuration and optional settings.
 
 **Parameters:**
-- `routes`: An array of React Router `<Route>` elements (e.g., `[<Route path="/" element={<Home />} />]`)
+- `routes`: A React Router route configuration created with `createRoutesFromElements` or directly as a route object
 - `promisesOrOptions`: Either an array of promises to wait for, or an options object
 - `options`: Configuration options (when using promises as the second parameter)
 
@@ -44,14 +44,15 @@ The entry point function that replaces ReactDOM.render/hydrate with SSR support.
 
 ```javascript
 import { run } from "@karpeleslab/react-klbfw-hooks";
+import { Route, createRoutesFromElements } from "react-router-dom";
 import Home from './routes/Home';
 
-// Define your routes as an array of React Router <Route> elements
-const routes = [
-  <Route path="/" element={<Home />} key="home" />
-];
+// Create routes with the Data Router API
+const routes = createRoutesFromElements(
+  <Route path="/" element={<Home />} />
+);
 
-// Pass the routes array directly to run
+// Pass the routes to run
 run(routes);
 ```
 
@@ -59,25 +60,28 @@ run(routes);
 
 ```javascript
 import { run } from "@karpeleslab/react-klbfw-hooks";
-import { Route } from "react-router-dom";
+import { Route, createRoutesFromElements } from "react-router-dom";
 import { Provider } from 'react-redux';
 import { store } from './store';
 import Home from './routes/Home';
 
-const routes = [
-  <Route path="/" element={<Home />} key="home" />
-];
+// Create routes
+const routes = createRoutesFromElements(
+  <Route path="/" element={<Home />} />
+);
 
-// Inject the Redux store by providing a custom RouterProvider
-run(routes, [], {
+// Inject the Redux store by providing custom router props
+run(routes, {
   routerProps: {
-    // This creates a RouterProvider that will include the store
-    // These props will be passed to the BrowserRouter (client) or StaticRouterProvider (server)
-    children: (routerChildren) => (
-      <Provider store={store}>
-        {routerChildren}
-      </Provider>
-    )
+    // These props will be passed to the RouterProvider (client) or StaticRouterProvider (server)
+    fallbackElement: <div>Loading...</div>,
+    future: {
+      v7_startTransition: true
+    }
+  },
+  contextProps: {
+    // You can also wrap the entire app with providers using React.createElement in your index.js
+    // This is an alternative approach for global store/provider setup
   }
 });
 ```
@@ -86,37 +90,36 @@ run(routes, [], {
 
 ```javascript
 import { run } from "@karpeleslab/react-klbfw-hooks";
-import { redirect, Route } from "react-router-dom";
+import { redirect, Route, createRoutesFromElements } from "react-router-dom";
 import Home from './routes/Home';
 import About from './routes/About';
 import Contact from './routes/Contact';
 
-// Define your routes as an array of <Route> elements
-const routes = [
-  <Route path="/" element={<Home />} key="home" />,
-  <Route path="/about" element={<About />} key="about" />,
-  <Route 
-    path="/contact" 
-    element={<Contact />} 
-    loader={async () => {
-      // Load data needed for this route
-      const data = await fetch('/api/contact-info').then(r => r.json());
-      return data;
-    }}
-    key="contact"
-  />,
-  <Route 
-    path="/redirect" 
-    loader={() => {
-      // Redirect example with status code
-      return redirect("/about", 301);
-    }}
-    key="redirect"
-  />
-];
+// Create routes
+const routes = createRoutesFromElements(
+  <>
+    <Route path="/" element={<Home />} />
+    <Route path="/about" element={<About />} />
+    <Route 
+      path="/contact" 
+      element={<Contact />} 
+      loader={async () => {
+        // Load data needed for this route
+        const data = await fetch('/api/contact-info').then(r => r.json());
+        return data;
+      }}
+    />
+    <Route 
+      path="/redirect" 
+      loader={() => {
+        // Redirect example with status code
+        return redirect("/about", 301);
+      }}
+    />
+  </>
+);
 
-// Pass routes array to run
-// IMPORTANT: routes must be an array of <Route> elements, not route configuration objects
+// Pass routes to run
 run(routes);
 ```
 
@@ -126,14 +129,15 @@ The library provides full support for React Router v7 SSR features including:
 
 - **Data Loading**: Routes with loaders will have their data pre-loaded during SSR
 - **Redirects**: Redirect responses from loaders are properly handled with status codes preserved
-- **Static Router**: Uses the modern React Router v7 data APIs (createStaticHandler, createStaticRouter, StaticRouterProvider)
+- **Data Router API**: Uses the modern React Router v7 data APIs (createBrowserRouter, createStaticHandler, createStaticRouter, RouterProvider, StaticRouterProvider)
 
 Under the hood, the implementation:
 
-1. Creates a static handler from routes using `createStaticHandler`
-2. Processes routes with `query` function to detect redirects and load data
-3. Renders using `createStaticRouter` and `StaticRouterProvider`
-4. Preserves HTTP status codes (301, 302, etc.) for proper SEO
+1. On the client: Creates a browser router from routes using `createBrowserRouter`
+2. On the server: Creates a static handler from routes using `createStaticHandler`
+3. Processes routes with `query` function to detect redirects and load data
+4. Renders using `createStaticRouter` and `StaticRouterProvider` for SSR
+5. Preserves HTTP status codes (301, 302, etc.) for proper SEO
 
 This allows you to use all modern React Router features while still benefiting from server-side rendering.
 

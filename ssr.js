@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 import * as ReactDOMServer from 'react-dom/server';
-import { BrowserRouter, Routes, createStaticHandler, createStaticRouter, StaticRouterProvider } from "react-router-dom";
+import { createBrowserRouter, createStaticHandler, createStaticRouter, RouterProvider, StaticRouterProvider } from "react-router-dom";
 import { getPrefix, getUuid, getPath, getUrl, getInitialState } from "@karpeleslab/klbfw";
 import { Helmet } from "react-helmet";
 
@@ -307,18 +307,19 @@ export function run(routes, promisesOrOptions, options) {
 			...(opts.contextProps || {})
 		};
 		
+		// Create a browser router with the routes
+		const router = createBrowserRouter(routes, {
+			basename: getPrefix(),
+			...(opts.routerProps || {})
+		});
+
 		// initialize app for client rendering with route configuration
 		const app = React.createElement(
 			Context.Provider,
 			contextProps,
 			React.createElement(
-				BrowserRouter,
-				routerProps,
-				React.createElement(
-					"Routes",
-					null,
-					routes
-				)
+				RouterProvider,
+				{ router }
 			)
 		);
 

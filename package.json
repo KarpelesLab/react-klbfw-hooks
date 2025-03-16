@@ -1,6 +1,6 @@
 {
   "name": "@karpeleslab/react-klbfw-hooks",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Various hooks for klbfw",
   "main": "index.js",
   "scripts": {
