@@ -27,17 +27,24 @@ npm install @karpeleslab/react-klbfw-hooks
 
 ## Usage
 
-### run(routesOrApp, promises)
+### run(routes, promises)
 
-The entry point function that replaces ReactDOM.render/hydrate with SSR support.
+The entry point function that replaces ReactDOM.render/hydrate with SSR support. Takes a routes object (not an App component).
 
 #### Basic usage in your `index.js`:
 
 ```javascript
-import App from './App';
 import { run } from "@karpeleslab/react-klbfw-hooks";
+import Home from './routes/Home';
 
-run(<App/>);
+const routes = [
+  {
+    path: "/",
+    element: <Home />
+  }
+];
+
+run(routes);
 ```
 
 #### With React Router v7:
@@ -101,8 +108,8 @@ This allows you to use all modern React Router features while still benefiting f
 With i18n support:
 
 ```javascript
-import App from './App';
 import { run } from "@karpeleslab/react-klbfw-hooks";
+import Home from './routes/Home';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { Backend } from '@karpeleslab/i18next-klb-backend';
@@ -120,7 +127,14 @@ let i18nOpt = {
 	}
 };
 
-run(<App/>, [i18n.use(Backend).use(initReactI18next).init(i18nOpt)]);
+const routes = [
+  {
+    path: "/",
+    element: <Home />
+  }
+];
+
+run(routes, [i18n.use(Backend).use(initReactI18next).init(i18nOpt)]);
 ```
 
 ### useVar(varName, defaultValue)
