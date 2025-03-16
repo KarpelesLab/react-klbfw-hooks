@@ -17,6 +17,6 @@ export function run(app: any, promises?: Array<Promise<any>>):  void;
 
 // rest
 
-export function useRest<T>(path: string, params?: string | {[paramKey: string]: any}, noThrow? :boolean): [T, (value: T) => Promise<T>];
-export function useRestRefresh<T>(path: string, params?: string | {[paramKey: string]: any}): (value: T) => Promise<T>;
+export function useRest<T>(path: string, params?: string | {[paramKey: string]: any}, noThrow? :boolean, cacheLifeTime?: number): [T, (value: T) => Promise<T>];
+export function useRestRefresh<T>(path: string, params?: string | {[paramKey: string]: any}, cacheLifeTime?: number): (value: T) => Promise<T>;
 export function useRestResetter(): () => void;
