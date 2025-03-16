@@ -72,7 +72,7 @@ const routes = [
 ];
 
 // Inject the Redux store by providing a custom RouterProvider
-run(routes, {
+run(routes, [], {
   routerProps: {
     // This creates a RouterProvider that will include the store
     // These props will be passed to the BrowserRouter (client) or StaticRouterProvider (server)
